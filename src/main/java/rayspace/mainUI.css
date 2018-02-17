@@ -1,0 +1,13 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 16-Jan-2018, 19:07:25
+    Author     : samuel
+*/
+
+.button{
+    -fx-pref-width: 200px;
+}
