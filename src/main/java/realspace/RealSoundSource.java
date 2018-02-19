@@ -20,41 +20,36 @@ import org.jbox2d.dynamics.World;
 /**
  *
  * @author samuel
- * Emmiter of rays to calculate reflections. Analogous for a speaker.
+ * Emitter of rays to calculate reflections. Analogous for a speaker.
  */
 public class RealSoundSource {
-    World world;
+    private World world;
     private Point2D xy;
+    private Fixture fixture;
     public RealSoundSource(Point2D xy, World world, BodyType bt){
         this.xy = xy;
         BodyDef bd = new BodyDef();
         this.world = world;
-        
         bd.type = bt ;
         bd.position.set((float)xy.getX(),(float)xy.getY());
-        
-        Body body = world.createBody(bd);
-       // body = new Body(bd,world);
-        
+        Body body = world.createBody(bd);        
         CircleShape cs = new CircleShape();
-        cs.m_radius = 5f;
-        //ps.setAsBox((float)(width/2)/scale,(float)(height/2)/scale);
-        
-        //ps.setAsBox((float)(width/2)/scale,(float)(height/2)/scale , coordToWorldVec( 0,0), (float)Math.toRadians(rotation));
+        cs.m_radius = 5f;        
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-        body.createFixture(fd);
+        fixture = body.createFixture(fd);
     }
     
-    public void reflectCast(double radiansAngle, RealSpace realSpace){
-        Vec2 p1 = new Vec2(), p2 = new Vec2(), collision = new Vec2(), normal = new Vec2();    
-        radiansAngle =Math.toRadians(180);
+    public PathNode reflectCast(double radiansAngle, RealSpace realSpace){
+        PathNode origin = new PathNode(RealSpace.Point2DToVec2(this.getXY()), fixture);
+        PathNode rayHit = new PathNode();
+        origin.setNextNode(rayHit);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
-                collision.set(point);
-                normal.set(norm.add(point));
-                normal.set(normal);                
+                rayHit.setXy(point);
+                rayHit.setNorm(norm.add(point));
+                rayHit.setFixture(fxtr);
                 return 0;
             }
         };
@@ -62,30 +57,37 @@ public class RealSoundSource {
         Point2D targetRotated = new Point2D(target.getX() * Math.cos(radiansAngle) - target.getY()*Math.sin(radiansAngle),target.getX() * Math.sin(radiansAngle) + target.getY()*Math.cos(radiansAngle));
         targetRotated = targetRotated.add(xy);
         world.raycast(callback, RealSpace.Point2DToVec2(xy), RealSpace.Point2DToVec2(targetRotated));
-        realSpace.getRays().add(new Ray(xy,targetRotated,realSpace.Vec2toPoint2D(collision),realSpace.Vec2toPoint2D(normal)));
-        ArrayList<PathNode> path = new ArrayList<>();
-        
-        reflectCast(2,realSpace,path);
+        if(rayHit.getFixture() != null){
+            System.out.println("YARRRRR HIT CAPTAIN");
+            reflectCast(4,realSpace,rayHit);
+        }else{
+            origin.setNextNode(null);
+        }
+        return origin;
     }
     
-    public void reflectCast(double radiansAngle, RealSpace realSpace, ArrayList<PathNode> path){
-        Vec2 p1 = new Vec2(), p2 = new Vec2(), collision = new Vec2(), normal = new Vec2();    
-        radiansAngle =Math.toRadians(180);
+    public void reflectCast(double radiansAngle, RealSpace realSpace, PathNode currentNode){
+        PathNode rayHit = new PathNode();
+        currentNode.setNextNode(rayHit);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
-                collision.set(point);
-                normal.set(norm.add(point));
-                normal.set(normal);                
+                rayHit.setXy(point);
+                rayHit.setNorm(norm.add(point));
+                rayHit.setFixture(fxtr);
                 return 0;
             }
         };
         Point2D target = new Point2D(500,0);
         Point2D targetRotated = new Point2D(target.getX() * Math.cos(radiansAngle) - target.getY()*Math.sin(radiansAngle),target.getX() * Math.sin(radiansAngle) + target.getY()*Math.cos(radiansAngle));
-        targetRotated = targetRotated.add(xy);
-        world.raycast(callback, RealSpace.Point2DToVec2(xy), RealSpace.Point2DToVec2(targetRotated));
-        realSpace.getRays().add(new Ray(xy,targetRotated,realSpace.Vec2toPoint2D(collision),realSpace.Vec2toPoint2D(normal)));
-        System.out.println(targetRotated);
+        targetRotated = targetRotated.add(RealSpace.Vec2toPoint2D(currentNode.getXy()));
+        world.raycast(callback, currentNode.getXy(), RealSpace.Point2DToVec2(targetRotated));
+        if(rayHit.getFixture() != null){
+            System.out.println("YARRRRR HIT CAPTAIN");
+            reflectCast(4 ,realSpace,rayHit);
+        }else{
+            currentNode.setNextNode(null);
+        }
     }
     
     public Point2D getXY(){

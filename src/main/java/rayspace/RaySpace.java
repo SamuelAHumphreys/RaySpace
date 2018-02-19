@@ -25,6 +25,7 @@ import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
+import realspace.PathNode;
 import realspace.Ray;
 import realspace.RealHearer;
 import realspace.RealSoundSource;
@@ -135,7 +136,7 @@ public class RaySpace extends Application {
                     p2 = realSpace.Point2DToVec2(realSpace.pixelXYToReal(m.getPressedXY()));
                     p1 = realSpace.Point2DToVec2(realSpace.pixelXYToReal(m.getReleasedXY()));
                     world.raycast(callback, p2, p1);
-                    realSpace.getRays().add(new Ray(realSpace.Vec2toPoint2D(p1),realSpace.Vec2toPoint2D(p2),realSpace.Vec2toPoint2D(collision),realSpace.Vec2toPoint2D(normal)));
+                    //realSpace.getRays().add(new Ray(realSpace.Vec2toPoint2D(p1),realSpace.Vec2toPoint2D(p2),realSpace.Vec2toPoint2D(collision),realSpace.Vec2toPoint2D(normal)));
 
                 }
             }
@@ -179,6 +180,29 @@ public class RaySpace extends Application {
                         
                     }
                 }
+                if(!realSpace.getOriginNodes().isEmpty()){
+                    spaceGC.setStroke(Color.GREEN);
+                    for(PathNode origin : realSpace.getOriginNodes()){
+                        Point2D start, end;
+                        PathNode node = origin.getNextNode();
+                        while(node != null){
+                            
+                            start = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(origin.getXy()));
+                            end = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getXy()));
+                            spaceGC.setStroke(Color.GREEN);
+                            spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
+                            origin = node;
+                            node = origin.getNextNode();
+                            System.out.println("start = " + start);
+                            System.out.println("end = " + end);
+                          //  Point2D pixelCollision = realSpace.realXYToPixel(r.getCollision());
+                          //  Point2D pixelNormal = realSpace.realXYToPixel(r.getNormal());
+                          //  spaceGC.setStroke(Color.WHITE);
+                          //  spaceGC.strokeLine(pixelCollision.getX() ,pixelCollision.getY(), pixelNormal.getX(),  pixelNormal.getY());
+                        }
+                    }
+                }
+                /*
                 if(!realSpace.getRays().isEmpty()){
                     spaceGC.setStroke(Color.GREEN);
                     for(Ray r : realSpace.getRays()){
@@ -189,7 +213,7 @@ public class RaySpace extends Application {
                         spaceGC.setStroke(Color.WHITE);
                         spaceGC.strokeLine(pixelCollision.getX() ,pixelCollision.getY(), pixelNormal.getX(),  pixelNormal.getY());
                     }
-                }
+                }*/
             }
         };
         at.start();
