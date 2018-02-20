@@ -93,8 +93,6 @@ public class RaySpace extends Application {
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() { //For testing purposes, should be deleted later.
             @Override
             public void handle(KeyEvent t) {
-                System.out.println(t.getCharacter()
-                );
                 if(t.getCode().equals(KeyCode.R)){
                     realSpace.reflectTest();
                 }
@@ -193,9 +191,7 @@ public class RaySpace extends Application {
                             spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
                             origin = node;
                             node = origin.getNextNode();
-                            System.out.println("start = " + start);
-                            System.out.println("end = " + end);
-                          //  Point2D pixelCollision = realSpace.realXYToPixel(r.getCollision());
+                                                     //  Point2D pixelCollision = realSpace.realXYToPixel(r.getCollision());
                           //  Point2D pixelNormal = realSpace.realXYToPixel(r.getNormal());
                           //  spaceGC.setStroke(Color.WHITE);
                           //  spaceGC.strokeLine(pixelCollision.getX() ,pixelCollision.getY(), pixelNormal.getX(),  pixelNormal.getY());

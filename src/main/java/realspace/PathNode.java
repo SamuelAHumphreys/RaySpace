@@ -14,13 +14,22 @@ import org.jbox2d.dynamics.Fixture;
  */
 public class PathNode {
     private Vec2 xy,norm;
-    private PathNode nextNode;
+    private PathNode nextNode, previousNode;
     private Fixture fixture;
     public PathNode(Vec2 xy, Fixture fixture){
         this.nextNode = null;
+        this.previousNode = null;
         this.norm = null;
         this.xy = xy;
         this.fixture = fixture;
+    }
+
+    public PathNode getPreviousNode() {
+        return previousNode;
+    }
+
+    public void setPreviousNode(PathNode previousNode) {
+        this.previousNode = previousNode;
     }
     public PathNode(){
         this.nextNode = null;

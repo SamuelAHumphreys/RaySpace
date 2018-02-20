@@ -44,11 +44,12 @@ public class RealSoundSource {
         PathNode origin = new PathNode(RealSpace.Point2DToVec2(this.getXY()), fixture);
         PathNode rayHit = new PathNode();
         origin.setNextNode(rayHit);
+        rayHit.setPreviousNode(origin);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
-                rayHit.setXy(point);
-                rayHit.setNorm(norm.add(point));
+                rayHit.setXy(new Vec2(point));
+                rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
                 return 0;
             }
@@ -59,7 +60,12 @@ public class RealSoundSource {
         world.raycast(callback, RealSpace.Point2DToVec2(xy), RealSpace.Point2DToVec2(targetRotated));
         if(rayHit.getFixture() != null){
             System.out.println("YARRRRR HIT CAPTAIN");
-            reflectCast(4,realSpace,rayHit);
+            Vec2 v = new Vec2((float)Math.cos(radiansAngle), (float)Math.sin(radiansAngle));
+            Point2D d = RealSpace.Vec2toPoint2D(v);
+            double top = d.dotProduct(RealSpace.Vec2toPoint2D(rayHit.getNorm()));
+            top *=2;
+            Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
+            reflectCast( Math.atan2(r.y, r.x),realSpace,rayHit);
         }else{
             origin.setNextNode(null);
         }
@@ -69,11 +75,12 @@ public class RealSoundSource {
     public void reflectCast(double radiansAngle, RealSpace realSpace, PathNode currentNode){
         PathNode rayHit = new PathNode();
         currentNode.setNextNode(rayHit);
+        rayHit.setPreviousNode(currentNode);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
-                rayHit.setXy(point);
-                rayHit.setNorm(norm.add(point));
+                rayHit.setXy(new Vec2(point));
+                rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
                 return 0;
             }
@@ -84,7 +91,12 @@ public class RealSoundSource {
         world.raycast(callback, currentNode.getXy(), RealSpace.Point2DToVec2(targetRotated));
         if(rayHit.getFixture() != null){
             System.out.println("YARRRRR HIT CAPTAIN");
-            reflectCast(4 ,realSpace,rayHit);
+            Vec2 v = new Vec2((float)Math.cos(radiansAngle), (float)Math.sin(radiansAngle));
+            Point2D d = RealSpace.Vec2toPoint2D(v);
+            double top = d.dotProduct(RealSpace.Vec2toPoint2D(rayHit.getNorm()));
+            top *=2;
+            Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
+            reflectCast( Math.atan2(r.y, r.x),realSpace,rayHit);
         }else{
             currentNode.setNextNode(null);
         }

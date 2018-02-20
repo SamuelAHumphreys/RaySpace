@@ -83,6 +83,6 @@ public class RealSpace {
     }
     
     public void reflectTest(){
-        originNodes.add(soundSources.get(0).reflectCast(0, this));
+        originNodes.add(soundSources.get(0).reflectCast(1, this));
     }
 }
