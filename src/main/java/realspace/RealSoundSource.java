@@ -51,7 +51,7 @@ public class RealSoundSource {
                 rayHit.setXy(new Vec2(point));
                 rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
-                return 0;
+                return f;
             }
         };
         Point2D target = new Point2D(500,0);
@@ -82,7 +82,7 @@ public class RealSoundSource {
                 rayHit.setXy(new Vec2(point));
                 rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
-                return 0;
+                return f;
             }
         };
         Point2D target = new Point2D(500,0);

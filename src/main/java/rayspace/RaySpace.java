@@ -5,6 +5,7 @@
  */
 package rayspace;
 
+import java.util.ArrayList;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -25,6 +26,7 @@ import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
+import realspace.PathAnimation;
 import realspace.PathNode;
 import realspace.Ray;
 import realspace.RealHearer;
@@ -142,8 +144,7 @@ public class RaySpace extends Application {
         
         
         World world = realSpace.getWorld();
-        
-        
+        PathAnimation pa = new PathAnimation(realSpace);
         AnimationTimer at = new AnimationTimer() {
             @Override
             public void handle(long now) {
@@ -178,6 +179,21 @@ public class RaySpace extends Application {
                         
                     }
                 }
+
+                pa.step();
+                
+                for(ArrayList<PathNode> nodes : pa.nodesToDraw()){
+                    Point2D start,end;
+                    for(PathNode node : nodes){
+                        if(node.getNextNode() != null){
+                            start = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getXy()));
+                            end = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getNextNode().getXy()));
+                            spaceGC.setStroke(Color.GREEN);
+                            spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
+                        }
+                    }
+                }
+                /*
                 if(!realSpace.getOriginNodes().isEmpty()){
                     spaceGC.setStroke(Color.GREEN);
                     for(PathNode origin : realSpace.getOriginNodes()){
@@ -198,6 +214,7 @@ public class RaySpace extends Application {
                         }
                     }
                 }
+                */
                 /*
                 if(!realSpace.getRays().isEmpty()){
                     spaceGC.setStroke(Color.GREEN);

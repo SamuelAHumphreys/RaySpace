@@ -23,6 +23,12 @@ public class PathNode {
         this.xy = xy;
         this.fixture = fixture;
     }
+    public PathNode(){
+        this.nextNode = null;
+        this.norm = null;
+        this.xy = null;
+        this.fixture = null;
+    }
 
     public PathNode getPreviousNode() {
         return previousNode;
@@ -30,12 +36,6 @@ public class PathNode {
 
     public void setPreviousNode(PathNode previousNode) {
         this.previousNode = previousNode;
-    }
-    public PathNode(){
-        this.nextNode = null;
-        this.norm = null;
-        this.xy = null;
-        this.fixture = null;
     }
     public void setNextNode(PathNode nextNode){
         this.nextNode = nextNode;
