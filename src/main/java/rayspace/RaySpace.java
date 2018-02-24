@@ -184,49 +184,15 @@ public class RaySpace extends Application {
                 
                 for(ArrayList<PathNode> nodes : pa.nodesToDraw()){
                     Point2D start,end;
-                    for(PathNode node : nodes){
-                        if(node.getNextNode() != null){
-                            start = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getXy()));
-                            end = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getNextNode().getXy()));
-                            spaceGC.setStroke(Color.GREEN);
-                            spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
-                        }
-                    }
-                }
-                /*
-                if(!realSpace.getOriginNodes().isEmpty()){
-                    spaceGC.setStroke(Color.GREEN);
-                    for(PathNode origin : realSpace.getOriginNodes()){
-                        Point2D start, end;
-                        PathNode node = origin.getNextNode();
-                        while(node != null){
-                            
-                            start = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(origin.getXy()));
-                            end = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(node.getXy()));
-                            spaceGC.setStroke(Color.GREEN);
-                            spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
-                            origin = node;
-                            node = origin.getNextNode();
-                                                     //  Point2D pixelCollision = realSpace.realXYToPixel(r.getCollision());
-                          //  Point2D pixelNormal = realSpace.realXYToPixel(r.getNormal());
-                          //  spaceGC.setStroke(Color.WHITE);
-                          //  spaceGC.strokeLine(pixelCollision.getX() ,pixelCollision.getY(), pixelNormal.getX(),  pixelNormal.getY());
-                        }
-                    }
-                }
-                */
-                /*
-                if(!realSpace.getRays().isEmpty()){
-                    spaceGC.setStroke(Color.GREEN);
-                    for(Ray r : realSpace.getRays()){
+                    for(int i = 0; i < nodes.size()-1; i++){
+                        start = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(nodes.get(i).getXy()));
+                        end = realSpace.realXYToPixel(RealSpace.Vec2toPoint2D(nodes.get(i+1).getXy()));
                         spaceGC.setStroke(Color.GREEN);
-                        spaceGC.strokeLine(realSpace.realXYToPixel(r.getStart()).getX(),realSpace.realXYToPixel(r.getStart()).getY(), realSpace.realXYToPixel(r.getEnd()).getX(), realSpace.realXYToPixel(r.getEnd()).getY());
-                        Point2D pixelCollision = realSpace.realXYToPixel(r.getCollision());
-                        Point2D pixelNormal = realSpace.realXYToPixel(r.getNormal());
-                        spaceGC.setStroke(Color.WHITE);
-                        spaceGC.strokeLine(pixelCollision.getX() ,pixelCollision.getY(), pixelNormal.getX(),  pixelNormal.getY());
+                        spaceGC.strokeLine(start.getX() ,start.getY(), end.getX(), end.getY());
+                        
                     }
-                }*/
+                }
+               
             }
         };
         at.start();

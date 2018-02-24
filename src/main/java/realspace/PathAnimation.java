@@ -22,26 +22,33 @@ public class PathAnimation {
     
     public ArrayList<ArrayList<PathNode>> nodesToDraw(){
         ArrayList<ArrayList<PathNode>> nodesToDraw = new ArrayList<>();
-        for(PathNode origin : space.getOriginNodes()){
+        int maxPathSize = 0;
+        for (ArrayList<PathNode> path : space.getPaths()){
+            if(path.size() > maxPathSize){
+                maxPathSize = path.size();
+            }
+        }
+        for(ArrayList<PathNode> path : space.getPaths()){
             nodesToDraw.add(new ArrayList<PathNode>());
-            PathNode nextNode = origin.getNextNode();
             int i = 0;
-            while(origin.getNextNode() != null && i < counter){
-                i++;
-                nodesToDraw.get(nodesToDraw.size()-1).add(origin);
-                origin = origin.getNextNode();
-                nextNode = origin.getNextNode();
-                if(origin.getNextNode() == null){
-                    counter = -1;
+            for(PathNode node : path){
+                if(nodesToDraw.get(nodesToDraw.size()-1).size() > counter % maxPathSize){
+                    break;
                 }
+                i++;
+                nodesToDraw.get(nodesToDraw.size()-1).add(node);
+                
             }
         }        
         return nodesToDraw;
     }
     
     public void step(){
+        if(space.getPaths().size() == 0){
+            counter = 0;
+        }
         stepCounter++;
-        if(stepCounter%15 == 0){
+        if(stepCounter%7 == 0){
             counter++;
         }
     }

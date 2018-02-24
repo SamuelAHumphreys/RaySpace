@@ -26,6 +26,7 @@ public class RealSoundSource {
     private World world;
     private Point2D xy;
     private Fixture fixture;
+    private static int maxPathSize = 500;
     public RealSoundSource(Point2D xy, World world, BodyType bt){
         this.xy = xy;
         BodyDef bd = new BodyDef();
@@ -40,11 +41,11 @@ public class RealSoundSource {
         fixture = body.createFixture(fd);
     }
     
-    public PathNode reflectCast(double radiansAngle, RealSpace realSpace){
+    public ArrayList<PathNode> reflectCast(double radiansAngle, RealSpace realSpace){
         PathNode origin = new PathNode(RealSpace.Point2DToVec2(this.getXY()), fixture);
         PathNode rayHit = new PathNode();
-        origin.setNextNode(rayHit);
-        rayHit.setPreviousNode(origin);
+        ArrayList<PathNode> path = new ArrayList<>();
+        path.add(origin);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
@@ -59,23 +60,25 @@ public class RealSoundSource {
         targetRotated = targetRotated.add(xy);
         world.raycast(callback, RealSpace.Point2DToVec2(xy), RealSpace.Point2DToVec2(targetRotated));
         if(rayHit.getFixture() != null){
-            System.out.println("YARRRRR HIT CAPTAIN");
             Vec2 v = new Vec2((float)Math.cos(radiansAngle), (float)Math.sin(radiansAngle));
             Point2D d = RealSpace.Vec2toPoint2D(v);
             double top = d.dotProduct(RealSpace.Vec2toPoint2D(rayHit.getNorm()));
             top *=2;
             Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
-            reflectCast( Math.atan2(r.y, r.x),realSpace,rayHit);
+            path.add(rayHit);
+            if(path.size() < maxPathSize && !rayHit.getFixture().isSensor()){
+                reflectCast( Math.atan2(r.y, r.x),realSpace,path);
+            }
         }else{
-            origin.setNextNode(null);
+            rayHit.setXy(RealSpace.Point2DToVec2(targetRotated));
+            path.add(rayHit);
+
         }
-        return origin;
+        return path;
     }
     
-    public void reflectCast(double radiansAngle, RealSpace realSpace, PathNode currentNode){
+    public void reflectCast(double radiansAngle, RealSpace realSpace, ArrayList<PathNode> currentPath){
         PathNode rayHit = new PathNode();
-        currentNode.setNextNode(rayHit);
-        rayHit.setPreviousNode(currentNode);
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
@@ -87,18 +90,21 @@ public class RealSoundSource {
         };
         Point2D target = new Point2D(500,0);
         Point2D targetRotated = new Point2D(target.getX() * Math.cos(radiansAngle) - target.getY()*Math.sin(radiansAngle),target.getX() * Math.sin(radiansAngle) + target.getY()*Math.cos(radiansAngle));
-        targetRotated = targetRotated.add(RealSpace.Vec2toPoint2D(currentNode.getXy()));
-        world.raycast(callback, currentNode.getXy(), RealSpace.Point2DToVec2(targetRotated));
+        targetRotated = targetRotated.add(RealSpace.Vec2toPoint2D(currentPath.get(currentPath.size()-1).getXy()));
+        world.raycast(callback, currentPath.get(currentPath.size()-1).getXy(), RealSpace.Point2DToVec2(targetRotated));
         if(rayHit.getFixture() != null){
-            System.out.println("YARRRRR HIT CAPTAIN");
             Vec2 v = new Vec2((float)Math.cos(radiansAngle), (float)Math.sin(radiansAngle));
             Point2D d = RealSpace.Vec2toPoint2D(v);
             double top = d.dotProduct(RealSpace.Vec2toPoint2D(rayHit.getNorm()));
             top *=2;
             Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
-            reflectCast( Math.atan2(r.y, r.x),realSpace,rayHit);
+            currentPath.add(rayHit);
+            if(currentPath.size() < maxPathSize && !rayHit.getFixture().isSensor()){
+                reflectCast( Math.atan2(r.y, r.x),realSpace,currentPath);
+            }
         }else{
-            currentNode.setNextNode(null);
+            rayHit.setXy(RealSpace.Point2DToVec2(targetRotated));
+            currentPath.add(rayHit);
         }
     }
     

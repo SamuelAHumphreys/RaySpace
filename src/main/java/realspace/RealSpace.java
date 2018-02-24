@@ -23,12 +23,12 @@ public class RealSpace {
     private ArrayList<RealWall> walls;
     private World world;
     private ArrayList<RealSoundSource> soundSources;
-    private ArrayList<PathNode> originNodes;
+    private ArrayList<ArrayList<PathNode>> paths;
     public RealSpace(double scale){
         hearer = null;
         walls = new ArrayList<>();
         soundSources = new ArrayList<>();
-        originNodes = new ArrayList<>();
+        paths = new ArrayList<>();
         this.scale = scale;
 
         Vec2 gravity = new Vec2(0, -9.8f);
@@ -78,11 +78,15 @@ public class RealSpace {
         return new Point2D(vec.x,vec.y);
     }
     
-    public ArrayList<PathNode> getOriginNodes(){
-        return originNodes;
+    public ArrayList<ArrayList<PathNode>> getPaths(){
+        return paths;
     }
     
     public void reflectTest(){
-        originNodes.add(soundSources.get(0).reflectCast(1, this));
+        for(double i = 0; i < 360; i+=20){
+            for(RealSoundSource ss : soundSources){
+                paths.add(ss.reflectCast(Math.toRadians(i), this));
+            }
+        }
     }
 }

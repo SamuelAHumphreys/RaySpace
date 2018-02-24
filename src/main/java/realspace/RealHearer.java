@@ -32,7 +32,8 @@ public class RealHearer {
         cs.m_radius = 5f;
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-        body.createFixture(fd);      
+        body.createFixture(fd);
+        body.getFixtureList().setSensor(true);
     }
     
     public Body getBody(){
