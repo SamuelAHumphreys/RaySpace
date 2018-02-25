@@ -82,10 +82,10 @@ public class RealSpace {
         return paths;
     }
     
-    public void reflectTest(){
-        for(double i = 0; i < 360; i+=20){
+    public void reflect(double increment, double angle, double center){
+        for(double i = center - (angle/2); i <= center + (angle/2); i+=increment){
             for(RealSoundSource ss : soundSources){
-                paths.add(ss.reflectCast(Math.toRadians(i), this));
+                paths.add(ss.reflectCast(Math.toRadians(i%361), this));
             }
         }
     }
