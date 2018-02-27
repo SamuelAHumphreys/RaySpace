@@ -22,8 +22,8 @@ public class RealWall {
     Point2D center, startXY, endXY;
     double rotation;
     double distance;
-    public RealWall(Point2D startXY,Point2D endXY, World world, BodyType bt){
-        float width = 1;
+    public RealWall(Point2D startXY,Point2D endXY, World world, BodyType bt, double width){
+        //float width = 1;
         this.startXY = startXY;
         this.endXY = endXY;
         BodyDef bd = new BodyDef();
@@ -36,7 +36,7 @@ public class RealWall {
         System.out.println(center);
         Body body = world.createBody(bd);
         PolygonShape ps = new PolygonShape();
-        ps.setAsBox((float)(distance/2),(float)(50*0.2/2), new Vec2(0,0),(float)Math.toRadians(rotation));
+        ps.setAsBox((float)(distance/2),(float)(width/2), new Vec2(0,0),(float)Math.toRadians(rotation));
 
         FixtureDef fd = new FixtureDef();
         fd.shape = ps;

@@ -43,8 +43,8 @@ public class RealSpace {
     public RealHearer getHearer(){
         return hearer;
     }
-    public void addWall(Point2D startXY, Point2D endXY){
-        walls.add(new RealWall(startXY, endXY, world, BodyType.STATIC));
+    public void addWall(Point2D startXY, Point2D endXY, double wallWidth){
+        walls.add(new RealWall(startXY, endXY, world, BodyType.STATIC,wallWidth));
     }
     public Point2D pixelXYToReal(Point2D pixel){
         return new Point2D(pixel.getX()*scale,pixel.getY()*scale);

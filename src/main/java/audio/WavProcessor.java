@@ -31,10 +31,18 @@ import realspace.RealSpace;
 public class WavProcessor {
     private File wavFile;
     private AudioFormat format;
+    private double roomSize;
     ArrayList<Byte> wavInBytes;
+    ProgressListener listener;
     
     public WavProcessor(){
         wavInBytes = new ArrayList<>();
+        roomSize = 0.1;
+        listener = null;
+    }
+    
+    public void setRoomSize(double roomSize){
+        this.roomSize = roomSize;
     }
     
     public void setFile(File wavFile) throws UnsupportedAudioFileException, IOException{
@@ -84,17 +92,22 @@ public class WavProcessor {
         
     }
     
-    public void save() throws FileNotFoundException, IOException{
-        byte[] output = new byte[wavInBytes.size()];
-        for(int i = 0; i < wavInBytes.size(); i++){
-            output[i] = wavInBytes.get(i);
+    public void save(File saveFile) throws FileNotFoundException, IOException{
+        if(saveFile != null){
+            byte[] output = new byte[wavInBytes.size()];
+            for(int i = 0; i < wavInBytes.size(); i++){
+                output[i] = wavInBytes.get(i);
+            }
+            InputStream b_in = new ByteArrayInputStream(output);
+            AudioInputStream stream = new AudioInputStream(b_in, format,
+                    output.length);
+            AudioSystem.write(stream,Type.WAVE, saveFile);
         }
-        InputStream b_in = new ByteArrayInputStream(output);
-        AudioInputStream stream = new AudioInputStream(b_in, format,
-                output.length);
-        File file = new File("file.wav");
-        AudioSystem.write(stream,Type.WAVE, file);
-
+        listener.update(100);
+    }
+    
+    public void setProgressListener(ProgressListener listener){
+        this.listener = listener;
     }
     /*
     public void delay(){
@@ -130,6 +143,8 @@ public class WavProcessor {
             }
         }
         ArrayList<Integer> reverbInInt = new ArrayList<>();
+        int progress = 1;
+        double percentage;
         for(RayData data : rayDatas){
             int byteDelay = ((int)(format.getFrameRate()*data.delay )* (format.getFrameSize()));
             int intDelay = byteDelay/(format.getFrameSize());
@@ -148,9 +163,16 @@ public class WavProcessor {
                 }else{
                     reverbInInt.add((int)(wavInInt.get(i) * gain));
                 }
-                
             }
+            percentage = (double)progress/(double)rayDatas.size();
+            if(percentage >= 100){
+                percentage = 99.9;
+            }
+            listener.update(percentage);
+            progress++;
         }
+            
+
         int largest = 0;
         for(int sample : reverbInInt){
             if(Math.abs(sample) > largest){
@@ -180,7 +202,6 @@ public class WavProcessor {
         public RayData(ArrayList<PathNode> path){
             gain = 1;
             double gainMultiplier = 0.9;
-            double size = 0.2;
             invert = false;
             int i = 1;
             double totalLength = 0;
@@ -194,9 +215,13 @@ public class WavProcessor {
                 
                 i++;
             }
-            totalLength *= size;
+            totalLength *= roomSize;
             delay = totalLength/343;
         }
+    }
+    
+    public File getWavFile(){
+        return wavFile;
     }
     
 }

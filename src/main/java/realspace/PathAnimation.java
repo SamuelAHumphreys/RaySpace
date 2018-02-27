@@ -28,16 +28,19 @@ public class PathAnimation {
                 maxPathSize = path.size();
             }
         }
+        int pathCounter = 0;
         for(ArrayList<PathNode> path : space.getPaths()){
-            nodesToDraw.add(new ArrayList<PathNode>());
-            int i = 0;
-            for(PathNode node : path){
-                if(nodesToDraw.get(nodesToDraw.size()-1).size() > counter % maxPathSize){
-                    break;
+            pathCounter++;
+            if(pathCounter % (double)(space.getPaths().size()/100) == 0){
+                nodesToDraw.add(new ArrayList<PathNode>());
+                int i = 0;
+                for(PathNode node : path){
+                    if(nodesToDraw.get(nodesToDraw.size()-1).size() > counter % maxPathSize){
+                        break;
+                    }
+                    i++;
+                    nodesToDraw.get(nodesToDraw.size()-1).add(node);
                 }
-                i++;
-                nodesToDraw.get(nodesToDraw.size()-1).add(node);
-                
             }
         }        
         return nodesToDraw;
@@ -51,5 +54,9 @@ public class PathAnimation {
         if(stepCounter%7 == 0){
             counter++;
         }
+    }
+    
+    public void reset(){
+        counter = 0;
     }
 }

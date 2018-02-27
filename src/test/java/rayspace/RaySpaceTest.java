@@ -43,6 +43,7 @@ import realspace.RealWall;
  * @author samuel
  */
 public class RaySpaceTest extends ApplicationTest{
+    /*
     final double realScale = 0.2;
     RealSpace realSpace;
     public RaySpaceTest(){
@@ -267,5 +268,5 @@ public class RaySpaceTest extends ApplicationTest{
         
             
             
-    }
+    }*/
 }
