@@ -90,16 +90,13 @@ public class WavProcessor {
             output[i] = wavInBytes.get(i);
         }
         InputStream b_in = new ByteArrayInputStream(output);
-        DataOutputStream dos = new DataOutputStream(new FileOutputStream(
-                "C:\\filename.bin"));
-        dos.write(output);
         AudioInputStream stream = new AudioInputStream(b_in, format,
                 output.length);
         File file = new File("file.wav");
-        AudioSystem.write(stream, Type.WAVE, file);
+        AudioSystem.write(stream,Type.WAVE, file);
 
     }
-    
+    /*
     public void delay(){
         int size = wavInBytes.size();
         int numberOfFrames = size/format.getFrameSize();
@@ -113,14 +110,67 @@ public class WavProcessor {
             }
         }
     }
-    
+    */
     public void applyReverb(ArrayList<ArrayList<PathNode>> rayData){
         ArrayList<RayData> rayDatas = new ArrayList<>();
         for(ArrayList<PathNode> path : rayData){
             rayDatas.add(new RayData(path));
         }
+        ArrayList<Integer> wavInInt = new ArrayList<>();
+        byte b1,b2;
+        b1 = 0;
+        b2 = 0;
+        System.out.println(format);
+        for(int i = 0; i < wavInBytes.size(); i++){
+            if(i % 2 == 0){
+                b1 = wavInBytes.get(i);
+            }else{
+                b2 = wavInBytes.get(i);
+                wavInInt.add((int)(((b2 & 0xFF) << 8) + (b1 & 0xFF))<< 16 >> 16);
+            }
+        }
+        ArrayList<Integer> reverbInInt = new ArrayList<>();
+        for(RayData data : rayDatas){
+            int byteDelay = ((int)(format.getFrameRate()*data.delay )* (format.getFrameSize()));
+            int intDelay = byteDelay/(format.getFrameSize());
+            while(reverbInInt.size() < intDelay){
+                reverbInInt.add(0);
+            }
+            
+
+            double gain = data.gain;
+            if(data.invert){
+                gain = -data.gain;
+            }
+            for(int i = 0; i < wavInInt.size(); i++){
+                if(i + intDelay < reverbInInt.size()){
+                    reverbInInt.set(i + intDelay, reverbInInt.get(i + intDelay) + (int)(wavInInt.get(i) * gain));
+                }else{
+                    reverbInInt.add((int)(wavInInt.get(i) * gain));
+                }
+                
+            }
+        }
+        int largest = 0;
+        for(int sample : reverbInInt){
+            if(Math.abs(sample) > largest){
+                largest = Math.abs(sample);
+            }
+        }
+        double multiplier = ((double)Short.MAX_VALUE/(double)largest);
+        for(int i = 0; i < reverbInInt.size(); i++){
+            reverbInInt.set(i, (int)(reverbInInt.get(i)*multiplier));
+        }
         
-        
+        ArrayList<Byte> reverbInBytes = new ArrayList<>();
+        for(int sample : reverbInInt){
+            reverbInBytes.add((byte)(sample & 0xFF));
+            reverbInBytes.add((byte) ((sample >> 8) & 0xFF ));
+            
+            
+        }
+        wavInBytes = reverbInBytes;
+        System.out.println("FIN");
     }
     
     private class RayData{
@@ -128,13 +178,15 @@ public class WavProcessor {
         double gain;
         double delay;
         public RayData(ArrayList<PathNode> path){
-            gain = 0.75;
+            gain = 1;
+            double gainMultiplier = 0.9;
+            double size = 0.2;
             invert = false;
             int i = 1;
             double totalLength = 0;
             for(PathNode node : path){
                 invert = !invert;
-                gain *= gain;
+                gain *= gainMultiplier;
                 
                 if(i < path.size()){
                     totalLength += RealSpace.Vec2toPoint2D(node.getXy()).distance(RealSpace.Vec2toPoint2D(path.get(i).getXy()));
@@ -142,6 +194,7 @@ public class WavProcessor {
                 
                 i++;
             }
+            totalLength *= size;
             delay = totalLength/343;
         }
     }

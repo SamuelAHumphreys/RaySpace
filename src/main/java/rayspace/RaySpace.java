@@ -164,7 +164,7 @@ public class RaySpace extends Application {
             @Override
             public void handle(KeyEvent t) {
                 if(t.getCode().equals(KeyCode.R)){
-                    realSpace.reflect(20,angleSlider.getValue(),centerSlider.getValue());
+                    realSpace.reflect(0.01,angleSlider.getValue(),centerSlider.getValue());
                     wp.applyReverb(realSpace.getPaths());
                     try {
                         wp.save();
