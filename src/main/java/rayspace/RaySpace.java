@@ -8,12 +8,15 @@ package rayspace;
 import audio.ProgressListener;
 import audio.WavProcessor;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -74,6 +77,7 @@ public class RaySpace extends Application {
         int windowWidth = 1080, windowHeight = 750;//Default window size, not yet able to resize.
         int spaceWidth = 800, spaceHeight = 750;//pixel size of area for editing the room to be simulated.
         PathAnimation pa = new PathAnimation(realSpace);
+        WavProcessor wp = new WavProcessor();
         final int wallWidth = 20;
         BorderPane layout = new BorderPane();
         Scene scene = new Scene(layout,windowWidth,windowHeight);
@@ -90,6 +94,8 @@ public class RaySpace extends Application {
         Label centerSliderLabel = new Label("Ray center");
         Label roomSizeLabel = new Label("Room Size");
         Label rayDensityLabel = new Label("Ray Density");
+        Label mixSliderLabel = new Label("Mix");
+        Label delaySliderLabel = new Label("Delay");
  
         mainUI.getChildren().add(angleSliderLabel);
         
@@ -100,6 +106,12 @@ public class RaySpace extends Application {
         angleSlider.setShowTickLabels(true);
         angleSlider.setShowTickMarks(true);
         angleSlider.setMajorTickUnit(72);
+        angleSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setMustUpdate(true);
+            }   
+        });
         mainUI.getChildren().add(angleSlider);
         
         mainUI.getChildren().add(centerSliderLabel);
@@ -111,6 +123,12 @@ public class RaySpace extends Application {
         centerSlider.setShowTickLabels(true);
         centerSlider.setShowTickMarks(true);
         centerSlider.setMajorTickUnit(72);
+        centerSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setMustUpdate(true);
+            }   
+        });
         mainUI.getChildren().add(centerSlider);
         
         mainUI.getChildren().add(roomSizeLabel);
@@ -124,11 +142,16 @@ public class RaySpace extends Application {
         sizeSlider.setMajorTickUnit(1);
         sizeSlider.setMinorTickCount(10);
         sizeSlider.setBlockIncrement(0.1);
+        sizeSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setMustUpdate(true);
+            }   
+        });
         mainUI.getChildren().add(sizeSlider);
         
         mainUI.getChildren().add(rayDensityLabel);
         
-        WavProcessor wp = new WavProcessor();
         final ProgressBar pb = new ProgressBar(0);
         wp.setProgressListener(new ProgressListener() {
             @Override
@@ -159,14 +182,46 @@ public class RaySpace extends Application {
         });
         rayDensity.setMin(0);
         rayDensity.setMax(100);
-        rayDensity.setValue(50);
+        rayDensity.setValue(15);
         rayDensity.setShowTickLabels(true);
         rayDensity.setShowTickMarks(true);
         rayDensity.setMajorTickUnit(10);
         rayDensity.setMinorTickCount(5);
         rayDensity.setBlockIncrement(10);
+        rayDensity.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setMustUpdate(true);
+            }   
+        });
         mainUI.getChildren().add(rayDensity);
         
+        mainUI.getChildren().add(mixSliderLabel);
+        
+        Slider mixSlider = new Slider();
+        mixSlider.setMin(0);
+        mixSlider.setMax(1);
+        mixSlider.setValue(0.5);
+        mixSlider.setShowTickLabels(true);
+        mixSlider.setShowTickMarks(true);
+        mixSlider.setMajorTickUnit(1);
+        mixSlider.setMinorTickCount(10);
+        mixSlider.setBlockIncrement(0.1);
+        mainUI.getChildren().add(mixSlider);
+        
+        mainUI.getChildren().add(delaySliderLabel);
+        
+        Slider delaySlider = new Slider();
+        delaySlider.setMin(0);
+        delaySlider.setMax(1000);
+        delaySlider.setValue(0);
+        delaySlider.setShowTickLabels(true);
+        delaySlider.setShowTickMarks(true);
+        delaySlider.setMajorTickUnit(100);
+        delaySlider.setMinorTickCount(50);
+        mainUI.getChildren().add(delaySlider);
+        
+
         
         mainUI.setMaxWidth(1000);
         
@@ -209,14 +264,60 @@ public class RaySpace extends Application {
         }
         });
         
+        Button playSampleButton = new Button("Play Sample");
+        mainUI.getChildren().add(playSampleButton);
+        playSampleButton.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent e) {
+            if(pb.getProgress() == 0 || pb.getProgress() == 100){
+                if(wp.mustUpdate()){
+                    
+                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*200),angleSlider.getValue(),centerSlider.getValue());
+                    
+                    if(wp.getWavFile() != null){
+
+                        wp.setRoomSize(sizeSlider.getValue());
+                        pb.setProgress(0.0001);
+                        new Thread(){
+                            public void run() {
+                                try {
+                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),delaySlider.getValue());
+                                } catch (LineUnavailableException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                wp.updateMix(mixSlider.getValue(),delaySlider.getValue());
+                                try {
+                                    wp.playMix();
+                                } catch (LineUnavailableException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        }.start();
+                        wp.setMustUpdate(false);
+                    }else{
+                        importWavButton.setStyle("-fx-background-color: #d23939; ");
+                    }
+                    
+                }else{
+                    wp.updateMix(mixSlider.getValue(),delaySlider.getValue());
+                    try {
+                        wp.playMix();
+                    } catch (LineUnavailableException ex) {
+                        Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                
+            }
+        }
+        });
+        
 
         Button exportWavButton = new Button("Export Wav");
         exportWavButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 if(pb.getProgress() == 0 || pb.getProgress() == 100){
-                    if(realSpace.getPaths().size() == 0){
-                        realSpace.reflect(20/((rayDensity.getValue()+0.02)*20),angleSlider.getValue(),centerSlider.getValue());
-                    }
+                    
+                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*200),angleSlider.getValue(),centerSlider.getValue());
+                    
                     if(wp.getWavFile() != null){
                         fileChooser.setTitle("Save Reverb");
                         fileChooser.setInitialFileName(".wav");
@@ -226,15 +327,23 @@ public class RaySpace extends Application {
                             pb.setProgress(0.0001);
                             new Thread(){
                                 public void run() {
-                                     wp.applyReverb(realSpace.getPaths());
+                                    try {
+                                        if(wp.mustUpdate()){
+                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),delaySlider.getValue());
+                                            wp.setMustUpdate(false);
+                                        }
+                                    } catch (LineUnavailableException ex) {
+                                        Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
                                     try {
                                         wp.save(file);
                                     } catch (IOException ex) {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                    } catch (LineUnavailableException ex) {
+                                        Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                 }
                             }.start();
-
                         }
                     }else{
                         importWavButton.setStyle("-fx-background-color: #d23939; ");
