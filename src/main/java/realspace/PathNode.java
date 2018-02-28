@@ -11,6 +11,7 @@ import org.jbox2d.dynamics.Fixture;
 /**
  *
  * @author samuel
+ * Place in physics space where a ray either starts or ends. Linked together to create a path.
  */
 public class PathNode {
     private Vec2 xy,norm;

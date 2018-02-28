@@ -17,6 +17,7 @@ import org.jbox2d.dynamics.World;
 /**
  *
  * @author samuel
+ * Jbox2d wall for reflecting rays.
  */
 public class RealWall {
     Point2D center, startXY, endXY;

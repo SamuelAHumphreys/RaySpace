@@ -32,7 +32,6 @@ import static org.junit.Assert.*;
 import static org.testfx.api.FxAssert.verifyThat;
 import org.testfx.framework.junit.ApplicationTest;
 import static org.testfx.matcher.base.NodeMatchers.hasText;
-import realspace.Ray;
 import realspace.RealHearer;
 import realspace.RealSoundSource;
 import realspace.RealSpace;

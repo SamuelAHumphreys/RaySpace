@@ -32,6 +32,7 @@ import sun.audio.AudioPlayer;
 /**
  *
  * @author samuel
+ * Class for translating wav files into byte arrays, int arrays and applying ray information to wavs to create the reverb effect.
  */
 public class WavProcessor {
     private File wavFile;
@@ -179,7 +180,6 @@ public class WavProcessor {
             AudioInputStream stream = new AudioInputStream(b_in, format,
                     output.length);
             AudioSystem.write(stream,Type.WAVE, saveFile);
-            
         }
         playMix(); 
     }

@@ -8,7 +8,6 @@ package rayspace;
 import audio.ProgressListener;
 import audio.WavProcessor;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -18,7 +17,6 @@ import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
@@ -28,8 +26,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -41,15 +37,9 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkEvent.EventType;
-import org.jbox2d.callbacks.RayCastCallback;
-import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 import realspace.PathAnimation;
 import realspace.PathNode;
-import realspace.Ray;
 import realspace.RealHearer;
 import realspace.RealSoundSource;
 import realspace.RealSpace;
@@ -61,7 +51,7 @@ import realspace.RealWall;
  * Contains main class, UI and animation timer. 
  */
 public class RaySpace extends Application {
-    final double realScale = 0.2;
+    final double realScale = 0.2;//Size of simulation in meters relative to pixels
     private RealSpace realSpace;
     public RaySpace(){
         realSpace = new RealSpace(realScale);
@@ -76,20 +66,19 @@ public class RaySpace extends Application {
     public void start(Stage primaryStage) throws Exception {
         int windowWidth = 1080, windowHeight = 750;//Default window size, not yet able to resize.
         int spaceWidth = 800, spaceHeight = 750;//pixel size of area for editing the room to be simulated.
+        final int wallWidth = 20;//pixels
         PathAnimation pa = new PathAnimation(realSpace);
         WavProcessor wp = new WavProcessor();
-        final int wallWidth = 20;
         BorderPane layout = new BorderPane();
         Scene scene = new Scene(layout,windowWidth,windowHeight);
+        primaryStage.setResizable(false);
         Canvas spaceCanvas = new Canvas(spaceWidth,spaceHeight);
         spaceCanvas.getStyleClass().add("spaceCanvas");
         GraphicsContext spaceGC = spaceCanvas.getGraphicsContext2D();
         layout.setLeft(spaceCanvas);
         VBox mainUI = new VBox();
         mainUI.getStyleClass().add("VBox");
-        
-        
-        
+        //UI labels and sliders---------------------------------------------------------------------------------------------------------------
         Label angleSliderLabel = new Label("Ray Angle Range");
         Label centerSliderLabel = new Label("Ray center");
         Label roomSizeLabel = new Label("Room Size");
@@ -220,10 +209,10 @@ public class RaySpace extends Application {
         delaySlider.setMajorTickUnit(100);
         delaySlider.setMinorTickCount(50);
         mainUI.getChildren().add(delaySlider);
-        
 
-        
         mainUI.setMaxWidth(1000);
+        
+        //UI buttons-------------------------------------------------------------------------------------------------
         
         Button simulateRoomButton = new Button("Simulate Room");
         simulateRoomButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -231,12 +220,12 @@ public class RaySpace extends Application {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
                 realSpace.getPaths().clear();
                 pa.reset();
-                realSpace.reflect(20/((rayDensity.getValue()+0.02)*20),angleSlider.getValue(),centerSlider.getValue());
+                realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
             }
         }
         });
-        
         mainUI.getChildren().add(simulateRoomButton);
+        
         Button importWavButton = new Button("Import WAV");
         importWavButton.getStyleClass().add("button");
         mainUI.getChildren().add(importWavButton);
@@ -271,7 +260,7 @@ public class RaySpace extends Application {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
                 if(wp.mustUpdate()){
                     
-                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*200),angleSlider.getValue(),centerSlider.getValue());
+                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
                     if(wp.getWavFile() != null){
 
@@ -316,7 +305,7 @@ public class RaySpace extends Application {
             @Override public void handle(ActionEvent e) {
                 if(pb.getProgress() == 0 || pb.getProgress() == 100){
                     
-                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*200),angleSlider.getValue(),centerSlider.getValue());
+                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
                     if(wp.getWavFile() != null){
                         fileChooser.setTitle("Save Reverb");
@@ -363,10 +352,9 @@ public class RaySpace extends Application {
         
         spaceGC.setFill(Color.BLACK);//background colour of space editor.
         spaceGC.fillRect(0, 0, windowWidth, windowHeight);
-        spaceGC.setStroke(Color.WHITE);
         
         //PixelSpace pixelSpace = new PixelSpace();
-        
+        //Creation of physics objects via canvas------------------------------------------------------------------------
         Mouse m = new Mouse();
         
         spaceCanvas.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -404,7 +392,7 @@ public class RaySpace extends Application {
             }
         });
         
-        
+        //Draw physics objects onto canvas-------------------------------------------------------------------------
         World world = realSpace.getWorld();
         AnimationTimer at = new AnimationTimer() {
             @Override
@@ -435,10 +423,7 @@ public class RaySpace extends Application {
                         spaceGC.rotate(wall.getRotation());
                         spaceGC.fillRect(-(wall.getDistance()/realScale)/2,-wallWidth/2,wall.getDistance()/realScale, wallWidth);
                         spaceGC.strokeRect((-(wall.getDistance()/realScale)/2)+ (lineWidth/2),(-wallWidth/2)+ (lineWidth/2),(wall.getDistance()/realScale)- (lineWidth), wallWidth- (lineWidth));
-             
                         spaceGC.restore(); 
-
-                        
                     }
                 }
 

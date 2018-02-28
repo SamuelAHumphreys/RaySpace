@@ -10,6 +10,7 @@ import java.util.ArrayList;
 /**
  *
  * @author samuel
+ * Class for choosing which paths and nodes to draw. Animation draws one ray at a time per path until all paths complete;
  */
 public class PathAnimation {
     private RealSpace space;
