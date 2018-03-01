@@ -85,6 +85,7 @@ public class RaySpace extends Application {
         Label rayDensityLabel = new Label("Ray Density");
         Label mixSliderLabel = new Label("Mix");
         Label delaySliderLabel = new Label("Delay");
+        Label surfaceRoughnessLabel = new Label("Surface Roughness");
  
         mainUI.getChildren().add(angleSliderLabel);
         
@@ -190,7 +191,7 @@ public class RaySpace extends Application {
         Slider mixSlider = new Slider();
         mixSlider.setMin(0);
         mixSlider.setMax(1);
-        mixSlider.setValue(0.5);
+        mixSlider.setValue(0.4);
         mixSlider.setShowTickLabels(true);
         mixSlider.setShowTickMarks(true);
         mixSlider.setMajorTickUnit(1);
@@ -209,6 +210,24 @@ public class RaySpace extends Application {
         delaySlider.setMajorTickUnit(100);
         delaySlider.setMinorTickCount(50);
         mainUI.getChildren().add(delaySlider);
+        
+        mainUI.getChildren().add(surfaceRoughnessLabel);
+        
+        Slider roughnessSlider = new Slider();
+        roughnessSlider.setMin(0);
+        roughnessSlider.setMax(1);
+        roughnessSlider.setValue(0);
+        roughnessSlider.setShowTickLabels(true);
+        roughnessSlider.setShowTickMarks(true);
+        roughnessSlider.setMajorTickUnit(0.1);
+        roughnessSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                realSpace.setSurfaceRoughness(roughnessSlider.getValue());
+                wp.setMustUpdate(true);
+            }   
+        });
+        mainUI.getChildren().add(roughnessSlider);
 
         mainUI.setMaxWidth(1000);
         

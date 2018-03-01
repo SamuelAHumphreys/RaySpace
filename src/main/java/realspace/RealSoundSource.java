@@ -6,6 +6,7 @@
 package realspace;
 
 import java.util.ArrayList;
+import java.util.Random;
 import javafx.geometry.Point2D;
 import org.jbox2d.callbacks.RayCastCallback;
 import org.jbox2d.collision.shapes.CircleShape;
@@ -41,7 +42,7 @@ public class RealSoundSource {
         fixture = body.createFixture(fd);
     }
     
-    public ArrayList<PathNode> reflectCast(double radiansAngle, RealSpace realSpace){
+    public ArrayList<PathNode> reflectCast(double radiansAngle, RealSpace realSpace, double surfaceRoughness){
         PathNode origin = new PathNode(RealSpace.Point2DToVec2(this.getXY()), fixture);
         PathNode rayHit = new PathNode();
         ArrayList<PathNode> path = new ArrayList<>();
@@ -66,8 +67,21 @@ public class RealSoundSource {
             top *=2;
             Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
             path.add(rayHit);
+            
+            Random ran = new Random();
+            double random1 = ran.nextGaussian()*surfaceRoughness;
+            double random2 = ran.nextGaussian()*surfaceRoughness;
+            
+            Vec2 r2 = r.clone();
+            r2.set(r.x+(float)random1, r.y+(float)random2);
+            while(1.5708 < Math.abs(Math.atan2(rayHit.getNorm().y,rayHit.getNorm().x) - Math.atan2(r2.y,r2.x))){
+                random1 = ran.nextGaussian()*(surfaceRoughness*1.5708);
+                random2 = ran.nextGaussian()*(surfaceRoughness*1.5708);
+                r2.set(r.x+(float)random1, r.y+(float)random2);
+            }
+
             if(path.size() < maxPathSize && !rayHit.getFixture().isSensor()){
-                reflectCast( Math.atan2(r.y, r.x),realSpace,path);
+                reflectCast( Math.atan2(r2.y, r2.x),realSpace,path);
             }
         }else{
             rayHit.setXy(RealSpace.Point2DToVec2(targetRotated));

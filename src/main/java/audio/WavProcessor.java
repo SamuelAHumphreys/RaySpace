@@ -224,7 +224,7 @@ public class WavProcessor {
         this.wavInInt = byteWavToInt(wavInBytes);
         ArrayList<RayData> rayDatas = new ArrayList<>();
         for(ArrayList<PathNode> path : rayData){
-            if(path.get(path.size()-1).getFixture()!= null && path.get(path.size()-1).getFixture().isSensor()){
+            if(path.get(path.size()-1).getFixture()!= null && path.get(path.size()-1).getFixture().isSensor() && path.size() > 1){
                 rayDatas.add(new RayData(path));
             }
         }

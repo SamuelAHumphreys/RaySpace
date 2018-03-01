@@ -18,13 +18,14 @@ import org.jbox2d.dynamics.World;
  * Physics space for containing all other .realspace objects. Contains helper methods for converting between pixelSpace and JBox2D "real" space.
  */
 public class RealSpace {
-    private double scale;
+    private double scale,surfaceRoughness;
     private RealHearer hearer;
     private ArrayList<RealWall> walls;
     private World world;
     private ArrayList<RealSoundSource> soundSources;
     private ArrayList<ArrayList<PathNode>> paths;
     public RealSpace(double scale){
+        surfaceRoughness = 0;
         hearer = null;
         walls = new ArrayList<>();
         soundSources = new ArrayList<>();
@@ -33,6 +34,9 @@ public class RealSpace {
 
         Vec2 gravity = new Vec2(0, -9.8f);
         this.world = new World(gravity, true);
+    }
+    public void setSurfaceRoughness(double surfaceRoughness){
+        this.surfaceRoughness = surfaceRoughness;
     }
     public void setHearer(Point2D realXY){
         if(hearer != null){
@@ -85,7 +89,7 @@ public class RealSpace {
     public void reflect(double increment, double angle, double center){
         for(double i = center - (angle/2); i <= center + (angle/2); i+=increment){
             for(RealSoundSource ss : soundSources){
-                paths.add(ss.reflectCast(Math.toRadians(i%361), this));
+                paths.add(ss.reflectCast(Math.toRadians(i%361), this,surfaceRoughness));
             }
         }
     }
