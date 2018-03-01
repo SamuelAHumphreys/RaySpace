@@ -86,7 +86,8 @@ public class RaySpace extends Application {
         Label mixSliderLabel = new Label("Mix");
         Label delaySliderLabel = new Label("Delay");
         Label surfaceRoughnessLabel = new Label("Surface Roughness");
- 
+        Label surfaceHighFreqAbsorbityLabel = new Label("Surface High Frequency Absorptivity");
+        
         mainUI.getChildren().add(angleSliderLabel);
         
         Slider angleSlider = new Slider();
@@ -202,8 +203,8 @@ public class RaySpace extends Application {
         mainUI.getChildren().add(delaySliderLabel);
         
         Slider delaySlider = new Slider();
-        delaySlider.setMin(0);
-        delaySlider.setMax(1000);
+        delaySlider.setMin(-10000);
+        delaySlider.setMax(10000);
         delaySlider.setValue(0);
         delaySlider.setShowTickLabels(true);
         delaySlider.setShowTickMarks(true);
@@ -227,7 +228,26 @@ public class RaySpace extends Application {
                 wp.setMustUpdate(true);
             }   
         });
+        
         mainUI.getChildren().add(roughnessSlider);
+        
+        mainUI.getChildren().add(surfaceHighFreqAbsorbityLabel);
+
+        Slider highFreqAbsobSlider = new Slider();
+        highFreqAbsobSlider.setMin(0);
+        highFreqAbsobSlider.setMax(1);
+        highFreqAbsobSlider.setValue(0);
+        highFreqAbsobSlider.setShowTickLabels(true);
+        highFreqAbsobSlider.setShowTickMarks(true);
+        highFreqAbsobSlider.setMajorTickUnit(0.1);
+        highFreqAbsobSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setHighFreqAbsorptivity(highFreqAbsobSlider.getValue());
+                wp.setMustUpdate(true);
+            }   
+        });
+        mainUI.getChildren().add(highFreqAbsobSlider);
 
         mainUI.setMaxWidth(1000);
         

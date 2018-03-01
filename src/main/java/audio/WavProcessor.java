@@ -29,13 +29,15 @@ import realspace.RealSpace;
 public class WavProcessor {
     private File wavFile;
     private AudioFormat format;
-    private double roomSize;
+    private double roomSize, highFreqAbsorptivity;
     ArrayList<Byte> wavInBytes, reverbInBytes, mixInBytes;
     ArrayList<Integer>wavInInt, reverbInInt, mixInInt;
     ProgressListener listener;
     private boolean mustUpdate;
+    private Clip clip;
     
-    public WavProcessor(){
+    public WavProcessor() throws LineUnavailableException{
+        highFreqAbsorptivity = 0;
         wavInBytes = new ArrayList<>();
         reverbInBytes = new ArrayList<>();
         mixInBytes = new ArrayList<>();
@@ -45,6 +47,12 @@ public class WavProcessor {
         mustUpdate = true;
         roomSize = 0.1;
         listener = null;
+        clip = AudioSystem.getClip();
+
+    }
+    
+    public void setHighFreqAbsorptivity(double highFreqAbsorptivity){
+        this.highFreqAbsorptivity = highFreqAbsorptivity;
     }
     /**
      * 
@@ -164,7 +172,6 @@ public class WavProcessor {
                 }
             }
             ArrayList<Integer> reverbInIntClone = (ArrayList<Integer>)reverbInInt.clone();
-            delay = 0;
             for(int i = -delay; i < reverbInInt.size(); i++){
                 if(i < 0){
                     reverbInInt.set(i+delay,0);
@@ -194,7 +201,7 @@ public class WavProcessor {
             for(int i = 0; i < mixInBytes.size(); i++){
                 mixArray[i] = mixInBytes.get(i);
             }
-            Clip clip = AudioSystem.getClip();
+            clip.close();
             clip.open(format, mixArray,0,mixArray.length);
             clip.start();
             
@@ -233,23 +240,25 @@ public class WavProcessor {
             ArrayList<Integer> reverbInInt = new ArrayList<>();
             int progress = 1;
             double percentage;
+            ArrayList<Integer> pathReverb;
             for(RayData data : rayDatas){
+                pathReverb = new ArrayList<>();
                 int byteDelay = ((int)(format.getFrameRate()*data.delay )* (format.getFrameSize()));
                 int intDelay = byteDelay/(format.getFrameSize());
-                /*
-                while(reverbInInt.size() < intDelay){
-                    reverbInInt.add(0);
-                }
-    */
                 double gain = data.gain;
                 if(data.invert){
                     gain = -data.gain;
                 }
                 for(int i = 0; i < wavInInt.size(); i++){
+                    pathReverb.add((int)(wavInInt.get(i) * gain));
+                }
+                pathReverb = smoothingLowPassFilter(pathReverb,(data.numberOfReflections * highFreqAbsorptivity) + 1 );
+
+                for(int i = 0; i < pathReverb.size(); i++){
                     if(i + intDelay < reverbInInt.size()){
-                        reverbInInt.set(i + intDelay, reverbInInt.get(i + intDelay) + (int)(wavInInt.get(i) * gain));
+                        reverbInInt.set(i + intDelay, reverbInInt.get(i + intDelay) + pathReverb.get(i));
                     }else{
-                        reverbInInt.add((int)(wavInInt.get(i) * gain));
+                        reverbInInt.add((int)(pathReverb.get(i)));
                     }
                 }
                 percentage = (double)progress/(double)rayDatas.size();
@@ -276,7 +285,6 @@ public class WavProcessor {
                 }
             }
             ArrayList<Integer> reverbInIntClone = (ArrayList<Integer>)reverbInInt.clone();
-            delay = 0;
             for(int i = -delay; i < reverbInInt.size(); i++){
                 if(i < 0){
                     reverbInInt.set(i+delay,0);
@@ -290,6 +298,7 @@ public class WavProcessor {
                     reverbInInt.set(i,0);
                 }
             }
+            
             this.reverbInInt = reverbInInt;
             mixInInt = (ArrayList<Integer>)reverbInInt.clone();
             for(int i = 0; i < wavInInt.size(); i++){
@@ -310,7 +319,9 @@ public class WavProcessor {
         boolean invert;
         double gain;
         double delay;
+        int numberOfReflections;
         public RayData(ArrayList<PathNode> path){
+            numberOfReflections = path.size()-1;
             gain = 1;
             double gainMultiplier = 0.9;
             invert = false;
@@ -331,8 +342,21 @@ public class WavProcessor {
         }
     }
     
+
+    
     public File getWavFile(){
         return wavFile;
+    }
+    
+    public ArrayList<Integer> smoothingLowPassFilter(ArrayList<Integer> source,double smoothing){
+        ArrayList<Integer> result = (ArrayList<Integer>)source.clone();
+        int value = result.get(0);
+        for(int i = 1; i < result.size(); i++){
+            int currentValue = result.get(i);
+            value += (currentValue - value)/smoothing;
+            result.set(i, value);
+        }
+        return result;
     }
     
 }
