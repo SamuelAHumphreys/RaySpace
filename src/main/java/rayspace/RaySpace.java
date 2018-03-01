@@ -259,35 +259,37 @@ public class RaySpace extends Application {
         @Override public void handle(ActionEvent e) {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
                 if(wp.mustUpdate()){
-                    
+                    realSpace.getPaths().clear();
                     realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
                     if(wp.getWavFile() != null){
 
                         wp.setRoomSize(sizeSlider.getValue());
                         pb.setProgress(0.0001);
-                        new Thread(){
+                        Thread t = new Thread(){
                             public void run() {
                                 try {
-                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),delaySlider.getValue());
+                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
                                 } catch (LineUnavailableException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 }
-                                wp.updateMix(mixSlider.getValue(),delaySlider.getValue());
+                                wp.updateMix(mixSlider.getValue(),(int)delaySlider.getValue());
                                 try {
                                     wp.playMix();
                                 } catch (LineUnavailableException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }
-                        }.start();
+                        };
+                        t.setDaemon(true);
+                        t.start();
                         wp.setMustUpdate(false);
                     }else{
                         importWavButton.setStyle("-fx-background-color: #d23939; ");
                     }
                     
                 }else{
-                    wp.updateMix(mixSlider.getValue(),delaySlider.getValue());
+                    wp.updateMix(mixSlider.getValue(),(int)delaySlider.getValue());
                     try {
                         wp.playMix();
                     } catch (LineUnavailableException ex) {
@@ -304,7 +306,7 @@ public class RaySpace extends Application {
         exportWavButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 if(pb.getProgress() == 0 || pb.getProgress() == 100){
-                    
+                    realSpace.getPaths().clear();
                     realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
                     if(wp.getWavFile() != null){
@@ -314,11 +316,11 @@ public class RaySpace extends Application {
                         if(file != null){
                             wp.setRoomSize(sizeSlider.getValue());
                             pb.setProgress(0.0001);
-                            new Thread(){
+                            Thread t = new Thread(){
                                 public void run() {
                                     try {
                                         if(wp.mustUpdate()){
-                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),delaySlider.getValue());
+                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
                                             wp.setMustUpdate(false);
                                         }
                                     } catch (LineUnavailableException ex) {
@@ -332,7 +334,9 @@ public class RaySpace extends Application {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                 }
-                            }.start();
+                            };
+                            t.setDaemon(true);
+                            t.start();
                         }
                     }else{
                         importWavButton.setStyle("-fx-background-color: #d23939; ");
