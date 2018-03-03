@@ -340,6 +340,58 @@ public class RaySpace extends Application {
         }
         });
         
+        Button playConvolvedSampleButton = new Button("Play Convolved Sample");
+        mainUI.getChildren().add(playConvolvedSampleButton);
+        playConvolvedSampleButton.setOnAction(new EventHandler<ActionEvent>() {
+        @Override public void handle(ActionEvent e) {
+            if(pb.getProgress() == 0 || pb.getProgress() == 100){
+                if(wp.mustUpdate()){
+                    realSpace.getPaths().clear();
+                    realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
+                    
+                    if(wp.getWavFile() != null){
+
+                        wp.setRoomSize(sizeSlider.getValue());
+                        pb.setProgress(0.0001);
+                        Thread t = new Thread(){
+                            public void run() {
+                                try {
+                                    wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
+                                } catch (UnsupportedAudioFileException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (IOException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                } catch (LineUnavailableException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                                wp.updateMix(mixSlider.getValue(),(int)delaySlider.getValue());
+                                try {
+                                    wp.playMix();
+                                } catch (LineUnavailableException ex) {
+                                    Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        };
+                        t.setDaemon(true);
+                        t.start();
+                        wp.setMustUpdate(false);
+                    }else{
+                        importWavButton.setStyle("-fx-background-color: #d23939; ");
+                    }
+                    
+                }else{
+                    wp.updateMix(mixSlider.getValue(),(int)delaySlider.getValue());
+                    try {
+                        wp.playMix();
+                    } catch (LineUnavailableException ex) {
+                        Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                
+            }
+        }
+        });
+        
 
         Button exportWavButton = new Button("Export Wav");
         exportWavButton.setOnAction(new EventHandler<ActionEvent>() {

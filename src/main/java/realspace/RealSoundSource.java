@@ -27,7 +27,7 @@ public class RealSoundSource {
     private World world;
     private Point2D xy;
     private Fixture fixture;
-    private static int maxPathSize = 500;
+    private static int maxPathSize = 150;
     public RealSoundSource(Point2D xy, World world, BodyType bt){
         this.xy = xy;
         BodyDef bd = new BodyDef();
