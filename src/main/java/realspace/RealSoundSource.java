@@ -74,10 +74,16 @@ public class RealSoundSource {
             
             Vec2 r2 = r.clone();
             r2.set(r.x+(float)random1, r.y+(float)random2);
-            while(1.5708 < Math.abs(Math.atan2(rayHit.getNorm().y,rayHit.getNorm().x) - Math.atan2(r2.y,r2.x))){
+            int i = 0;
+            while(1.5708 < Math.abs(Math.atan2(rayHit.getNorm().y,rayHit.getNorm().x) - Math.atan2(r2.y,r2.x)) && i < 100){
+                i++;
                 random1 = ran.nextGaussian()*(surfaceRoughness*1.5708);
                 random2 = ran.nextGaussian()*(surfaceRoughness*1.5708);
                 r2.set(r.x+(float)random1, r.y+(float)random2);
+            }
+            if(i == 100){
+                random1 = 0;
+                random2 = 0;
             }
 
             if(path.size() < maxPathSize && !rayHit.getFixture().isSensor()){

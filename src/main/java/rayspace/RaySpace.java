@@ -87,6 +87,7 @@ public class RaySpace extends Application {
         Label delaySliderLabel = new Label("Delay");
         Label surfaceRoughnessLabel = new Label("Surface Roughness");
         Label surfaceHighFreqAbsorbityLabel = new Label("Surface High Frequency Absorptivity");
+        Label surfaceLowFreqAbsorbityLabel = new Label("Surface Low Frequency Absorptivity");
         
         mainUI.getChildren().add(angleSliderLabel);
         
@@ -248,7 +249,25 @@ public class RaySpace extends Application {
             }   
         });
         mainUI.getChildren().add(highFreqAbsobSlider);
+        
+        mainUI.getChildren().add(surfaceLowFreqAbsorbityLabel);
 
+        Slider lowFreqAbsobSlider = new Slider();
+        lowFreqAbsobSlider.setMin(0);
+        lowFreqAbsobSlider.setMax(1);
+        lowFreqAbsobSlider.setValue(0);
+        lowFreqAbsobSlider.setShowTickLabels(true);
+        lowFreqAbsobSlider.setShowTickMarks(true);
+        lowFreqAbsobSlider.setMajorTickUnit(0.1);
+        lowFreqAbsobSlider.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                wp.setLowFreqAbsorptivity(lowFreqAbsobSlider.getValue());
+                wp.setMustUpdate(true);
+            }   
+        });
+        mainUI.getChildren().add(lowFreqAbsobSlider);
+        
         mainUI.setMaxWidth(1000);
         
         //UI buttons-------------------------------------------------------------------------------------------------
@@ -297,7 +316,7 @@ public class RaySpace extends Application {
         playSampleButton.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent e) {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
-                if(wp.mustUpdate()){
+                if(wp.mustUpdate() || wp.wasConvolved()){
                     realSpace.getPaths().clear();
                     realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
@@ -305,6 +324,7 @@ public class RaySpace extends Application {
 
                         wp.setRoomSize(sizeSlider.getValue());
                         pb.setProgress(0.0001);
+                        wp.setWasConvolved(false);
                         Thread t = new Thread(){
                             public void run() {
                                 try {
@@ -345,7 +365,7 @@ public class RaySpace extends Application {
         playConvolvedSampleButton.setOnAction(new EventHandler<ActionEvent>() {
         @Override public void handle(ActionEvent e) {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
-                if(wp.mustUpdate()){
+                if(wp.mustUpdate() || !wp.wasConvolved()){
                     realSpace.getPaths().clear();
                     realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
                     
@@ -353,6 +373,7 @@ public class RaySpace extends Application {
 
                         wp.setRoomSize(sizeSlider.getValue());
                         pb.setProgress(0.0001);
+                        wp.setWasConvolved(true);
                         Thread t = new Thread(){
                             public void run() {
                                 try {

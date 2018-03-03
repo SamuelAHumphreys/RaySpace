@@ -48,6 +48,11 @@
             <version>2.1.2.3</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>uk.me.berndporr</groupId>
+            <artifactId>iirj</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
