@@ -289,18 +289,16 @@ public class WavProcessor {
                 ArrayList<Integer> lowpass =(ArrayList<Integer>)wavInInt.clone();
 
                 if(freq != 20000){
-                   // lowpass =maximise(lowPass(wavInInt, freq));
+                   lowpass =maximise(lowPass(wavInInt, freq));
                 }
                 freq = (float)Math.abs(20000-(20000 - ((lowFreqAbsorptivity*12000) * ((float)data.numberOfReflections))));
                 if(freq > 20000){
                     freq = 20000;
                 }
-                if(freq <=0){
-                    freq = 0.1f;
-                }
+
                 
                 if(freq != 0){
-                   // lowpass = maximise(highPass(lowpass,freq));
+                   lowpass = maximise(highPass(lowpass,freq));
                 }
                 for(int i = 0; i < lowpass.size(); i++){
                     pathReverb.add((int)((double)lowpass.get(i) * gain));
@@ -454,7 +452,7 @@ public class WavProcessor {
         ArrayList<Byte> byteWhiteNoise = new ArrayList<>();
         
         //File file = new File("sho.wav");
-        File file = new File("free.wav");
+        File file = new File("shortSineSweep.wav");
 
         AudioInputStream is = AudioSystem.getAudioInputStream(file);
         byte[] buffer = new byte[format.getFrameSize()];
@@ -493,6 +491,14 @@ public class WavProcessor {
         double[] x = new double[largest];
         double[] y = new double[largest];
         double[] z = new double[largest];
+        double[] a = new double[largest];
+        for(int i = 0; i < largest; i++){
+            if(i < whiteNoise.size()){
+                a[i] = whiteNoise.get(whiteNoise.size() -1 - i)*m;
+            }else{
+                a[i] = 0;
+            }
+        }
         for(int i = 0; i < largest; i++){
             if(i < wavInInt.size()){
                 x[i] = wavInInt.get(i)*m;
@@ -511,14 +517,15 @@ public class WavProcessor {
         for(int i = 0; i < largest; i++){
             z[i] = 0;
         }
-        Fft.convolve(x, y, z);
-       
+        Fft.convolve(a, y, z);
+        Fft.convolve(x, z, a);
+        //Fft.inverseTransform(x, z);
 
         for(int i = 0; i < largest; i++){
             if(i < reverbInInt.size()){
-                reverbInInt.set(i, (int)(z[i]/m));
+                reverbInInt.set(i, (int)(a[i]/m));
             }else{
-                reverbInInt.add((int)(z[i]/m));
+                reverbInInt.add((int)(a[i]/m));
             }
         }
         
