@@ -11,6 +11,7 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
 
@@ -22,6 +23,7 @@ import org.jbox2d.dynamics.World;
 public class RealHearer {
     private Body body;
     private Point2D xy;
+    private Fixture fixture;
     public RealHearer(Point2D xy, World world, BodyType bt){
         this.xy = xy;
         BodyDef bd = new BodyDef();
@@ -32,7 +34,7 @@ public class RealHearer {
         cs.m_radius = 5f;
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-        body.createFixture(fd);
+        fixture = body.createFixture(fd);
         body.getFixtureList().setSensor(true);
     }
     
@@ -44,4 +46,7 @@ public class RealHearer {
         return xy;
     }
     
+    public Fixture getFixture(){
+        return fixture;
+    }
 }

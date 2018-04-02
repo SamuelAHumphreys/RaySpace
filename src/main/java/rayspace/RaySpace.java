@@ -328,7 +328,8 @@ public class RaySpace extends Application {
                         Thread t = new Thread(){
                             public void run() {
                                 try {
-                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
+                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
+                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
                                 } catch (LineUnavailableException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 }
@@ -377,7 +378,8 @@ public class RaySpace extends Application {
                         Thread t = new Thread(){
                             public void run() {
                                 try {
-                                    wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
+                                    wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
+                                    wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
                                 } catch (UnsupportedAudioFileException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 } catch (IOException ex) {
@@ -432,14 +434,16 @@ public class RaySpace extends Application {
                                 public void run() {
                                     try {
                                         if(wp.mustUpdate()){
-                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue());
+                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
+                                            wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
                                             wp.setMustUpdate(false);
                                         }
                                     } catch (LineUnavailableException ex) {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                     try {
-                                        wp.save(file);
+                                        //wp.save(file);
+                                        wp.stereoSave(file);
                                     } catch (IOException ex) {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     } catch (LineUnavailableException ex) {
@@ -477,7 +481,11 @@ public class RaySpace extends Application {
             @Override
             public void handle(MouseEvent t) {
                 if(t.getButton().equals(MouseButton.PRIMARY) && !m.isDragging()){
-                    realSpace.setHearer(realSpace.pixelXYToReal(new Point2D(t.getX(),t.getY())));
+                    if(!t.isControlDown()){
+                        realSpace.setHearer(realSpace.pixelXYToReal(new Point2D(t.getX(),t.getY())));
+                    }else{
+                        realSpace.setStereoHearer(realSpace.pixelXYToReal(new Point2D(t.getX(),t.getY())));
+                    }
                 }else if(t.getButton().equals(MouseButton.SECONDARY) && !m.isDragging()){
                     realSpace.addSoundSource(realSpace.pixelXYToReal(new Point2D(t.getX(),t.getY())));
                 }
@@ -521,6 +529,15 @@ public class RaySpace extends Application {
                     spaceGC.setLineWidth(lineWidth);
                     spaceGC.setFill(Color.GREY);
                     RealHearer hearer = realSpace.getHearer();
+                    Point2D hearerPixelXY = realSpace.realXYToPixel(hearer.getXY());
+                    spaceGC.setStroke(Color.WHITE);
+                    spaceGC.fillOval(hearerPixelXY.getX()-25, hearerPixelXY.getY()-25, 50, 50);
+                    spaceGC.strokeOval(hearerPixelXY.getX()-25, hearerPixelXY.getY()-25, 50, 50);
+                }
+                if(realSpace.getStereoHearer()!= null){
+                    spaceGC.setLineWidth(lineWidth);
+                    spaceGC.setFill(Color.GREY);
+                    RealHearer hearer = realSpace.getStereoHearer();
                     Point2D hearerPixelXY = realSpace.realXYToPixel(hearer.getXY());
                     spaceGC.setStroke(Color.WHITE);
                     spaceGC.fillOval(hearerPixelXY.getX()-25, hearerPixelXY.getY()-25, 50, 50);

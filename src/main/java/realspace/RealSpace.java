@@ -19,7 +19,7 @@ import org.jbox2d.dynamics.World;
  */
 public class RealSpace {
     private double scale,surfaceRoughness;
-    private RealHearer hearer;
+    private RealHearer hearer,stereoHearer;
     private ArrayList<RealWall> walls;
     private World world;
     private ArrayList<RealSoundSource> soundSources;
@@ -27,6 +27,7 @@ public class RealSpace {
     public RealSpace(double scale){
         surfaceRoughness = 0;
         hearer = null;
+        stereoHearer = null;
         walls = new ArrayList<>();
         soundSources = new ArrayList<>();
         paths = new ArrayList<>();
@@ -46,6 +47,15 @@ public class RealSpace {
     }
     public RealHearer getHearer(){
         return hearer;
+    }
+    public void setStereoHearer(Point2D realXY){
+        if(stereoHearer != null){
+            world.destroyBody(stereoHearer.getBody());
+        }
+        stereoHearer = new RealHearer(realXY,world,BodyType.STATIC);
+    }
+    public RealHearer getStereoHearer(){
+        return stereoHearer;
     }
     public void addWall(Point2D startXY, Point2D endXY, double wallWidth){
         walls.add(new RealWall(startXY, endXY, world, BodyType.STATIC,wallWidth));

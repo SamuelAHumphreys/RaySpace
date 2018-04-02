@@ -16,6 +16,7 @@ import org.jbox2d.dynamics.Fixture;
 public class PathNode {
     private Vec2 xy,norm;
     private Fixture fixture;
+    private int stereoChannel;
     public PathNode(Vec2 xy, Fixture fixture){
         this.norm = null;
         this.xy = xy;
@@ -27,6 +28,13 @@ public class PathNode {
         this.fixture = null;
     }
 
+    public void setStereoChannel(int stereoChannel){
+        this.stereoChannel = stereoChannel;
+    }
+    
+    public int getStereoChannel(){
+        return stereoChannel;
+    }
     
     public Vec2 getXy() {
         return xy;

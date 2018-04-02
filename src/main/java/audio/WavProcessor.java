@@ -31,8 +31,8 @@ public class WavProcessor {
     private File wavFile;
     private AudioFormat format;
     private double roomSize, highFreqAbsorptivity,lowFreqAbsorptivity;
-    ArrayList<Byte> wavInBytes, reverbInBytes, mixInBytes;
-    ArrayList<Integer>wavInInt, reverbInInt, mixInInt;
+    ArrayList<Byte> wavInBytes, reverbInBytes, mixInBytes,mixChannel2InBytes;
+    ArrayList<Integer>wavInInt, reverbInInt, mixInInt,mixChannel2InInt;
     ProgressListener listener;
     private boolean mustUpdate,wasConvolved;
     private Clip clip;
@@ -47,6 +47,8 @@ public class WavProcessor {
         wavInInt = new ArrayList<>();
         reverbInInt = new ArrayList<>();
         mixInInt = new ArrayList<>();
+        mixChannel2InBytes = new ArrayList<>();
+        mixChannel2InInt = new ArrayList<>();
         mustUpdate = true;
         roomSize = 0.1;
         listener = null;
@@ -229,7 +231,9 @@ public class WavProcessor {
             for(int i = 0; i < mixInBytes.size(); i++){
                 mixArray[i] = mixInBytes.get(i);
             }
-            clip.close();
+            if(clip.isOpen()){
+                clip.close();
+            }
             clip.open(format, mixArray,0,mixArray.length);
             clip.start();
             
@@ -246,24 +250,64 @@ public class WavProcessor {
             InputStream b_in = new ByteArrayInputStream(output);
             AudioInputStream stream = new AudioInputStream(b_in, format,
                     output.length);
+            AudioSystem.write(stream,Type.WAVE, saveFile); 
+        }
+        this.listener.update(100);
+
+    }
+    
+    public void stereoSave(File saveFile) throws FileNotFoundException, IOException, LineUnavailableException{
+        if(saveFile != null){
+            int largest = mixInBytes.size();
+            if(largest < mixChannel2InBytes.size()){
+                largest = mixChannel2InBytes.size();
+            }
+            byte[] output = new byte[largest*2];
+            InputStream b_in = new ByteArrayInputStream(output);
+            AudioInputStream stream = new AudioInputStream(b_in, format,
+                    output.length);
+            AudioSystem.write(stream,Type.WAVE, saveFile);
+            
+            for(int i = 0; i < largest; i+=4){
+                if(i+1 < mixInBytes.size()){
+                    output[i] = mixInBytes.get(i);
+                    output[i+1] = mixInBytes.get(i+1);
+                }
+                if(i+1 < mixChannel2InBytes.size()){
+                    output[i + 2] = mixChannel2InBytes.get(i);
+                    output[i + 3] = mixChannel2InBytes.get(i+1);
+                }
+            }
+            b_in = new ByteArrayInputStream(output);
+            AudioFormat f = new AudioFormat(format.getEncoding(),format.getSampleRate()/2, format.getSampleSizeInBits(),2,format.getFrameSize(),format.getFrameRate(),format.isBigEndian());
+            stream = new AudioInputStream(b_in, f,
+                    output.length);
             AudioSystem.write(stream,Type.WAVE, saveFile);
         }
-        playMix(); 
+        this.listener.update(100);
+
     }
     
     public void setProgressListener(ProgressListener listener){
         this.listener = listener;
     }
 
-    public void applyReverb(ArrayList<ArrayList<PathNode>> rayData, double mix, int delay) throws LineUnavailableException{
+    public void applyReverb(ArrayList<ArrayList<PathNode>> rayData, double mix, int delay,int channel) throws LineUnavailableException{
         
         this.wavInInt = byteWavToInt(wavInBytes);
         ArrayList<RayData> rayDatas = new ArrayList<>();
         for(ArrayList<PathNode> path : rayData){
-            if(path.get(path.size()-1).getFixture()!= null && path.get(path.size()-1).getFixture().isSensor() && path.size() > 1){
+            if(path.get(path.size()-1).getFixture()!= null && path.get(path.size()-1).getFixture().isSensor() && path.size() > 1 && path.get(path.size()-1).getStereoChannel() == channel){
                 rayDatas.add(new RayData(path));
             }
         }
+        /*
+        for(RayData data : rayDatas){
+            int byteDelay = ((int)(format.getFrameRate()*data.delay )* (format.getFrameSize()));
+            int intDelay = byteDelay/(format.getFrameSize());
+            double gain = data.gain;
+        }
+        */
         if(rayDatas.size() > 0){
             //may translate into function------------------------------------------------------------------
             ArrayList<Integer> reverbInInt = new ArrayList<>();
@@ -291,7 +335,7 @@ public class WavProcessor {
                 if(freq != 20000){
                    lowpass =maximise(lowPass(wavInInt, freq));
                 }
-                freq = (float)Math.abs(20000-(20000 - ((lowFreqAbsorptivity*12000) * ((float)data.numberOfReflections))));
+                freq = (float)Math.abs(20000-(20000 - ((lowFreqAbsorptivity*50) * ((float)data.numberOfReflections))));
                 if(freq > 20000){
                     freq = 20000;
                 }
@@ -362,7 +406,19 @@ public class WavProcessor {
                 wavSample = mixInInt.get(mixInInt.size()-1);
             }*/
             //mixInInt = new ArrayList<>();
-            mixInBytes = intWavToByte(mixInInt);
+            if(channel == 1){
+                mixInInt = (ArrayList<Integer>)reverbInInt.clone();
+                for(int i = 0; i < wavInInt.size(); i++){
+                    mixInInt.set(i,reverbInInt.get(i)+(int)(wavInInt.get(i)*(1-mix))); 
+                }
+                mixInBytes = intWavToByte(mixInInt);
+            }else{
+                mixChannel2InInt = (ArrayList<Integer>)reverbInInt.clone();
+                for(int i = 0; i < wavInInt.size(); i++){
+                    mixChannel2InInt.set(i,reverbInInt.get(i)+(int)(wavInInt.get(i)*(1-mix))); 
+                }
+                mixChannel2InBytes = intWavToByte(mixChannel2InInt);
+            }
         }else{
             mixInInt = new ArrayList<>();
             for(int i = 0; i < wavInInt.size(); i++){
@@ -438,7 +494,7 @@ public class WavProcessor {
         return wavFile;
     }
     
-    public void convolve(ArrayList<ArrayList<PathNode>> rayData,double mix, int delay) throws UnsupportedAudioFileException, IOException, LineUnavailableException{
+    public void convolve(ArrayList<ArrayList<PathNode>> rayData,double mix, int delay,int channel) throws UnsupportedAudioFileException, IOException, LineUnavailableException{
         this.wavInInt = byteWavToInt(wavInBytes);
         ArrayList<Integer> tmpWavInInt = new ArrayList<>();
         for(int i : wavInInt){
@@ -451,7 +507,7 @@ public class WavProcessor {
         ArrayList<Integer> whiteNoise = new ArrayList<>();
         ArrayList<Byte> byteWhiteNoise = new ArrayList<>();
         
-        //File file = new File("sho.wav");
+        //File file = new File("1secsine.wav");
         File file = new File("shortSineSweep.wav");
 
         AudioInputStream is = AudioSystem.getAudioInputStream(file);
@@ -471,7 +527,7 @@ public class WavProcessor {
         whiteNoise = byteWavToInt(byteWhiteNoise);
         wavInBytes = byteWhiteNoise;
         wavInInt = whiteNoise;
-        this.applyReverb(rayData, 1, 0);
+        this.applyReverb(rayData, 1, 0,channel);
         impulseResponse = (ArrayList<Integer>)reverbInInt.clone();
         wavInInt = tmpWavInInt;
         
@@ -485,19 +541,26 @@ public class WavProcessor {
             largest = impulseResponse.size();
         }
         largest =  wavInInt.size()+impulseResponse.size();
+        
 
+        
         double m=1;
         m /= impulseResponse.size();
         double[] x = new double[largest];
         double[] y = new double[largest];
         double[] z = new double[largest];
         double[] a = new double[largest];
+        double[] c = new double[largest];
+
         for(int i = 0; i < largest; i++){
             if(i < whiteNoise.size()){
                 a[i] = whiteNoise.get(whiteNoise.size() -1 - i)*m;
             }else{
                 a[i] = 0;
             }
+        }
+        for(int i = 0; i < largest; i++){
+            c[i] = 0;
         }
         for(int i = 0; i < largest; i++){
             if(i < wavInInt.size()){
@@ -518,14 +581,20 @@ public class WavProcessor {
             z[i] = 0;
         }
         Fft.convolve(a, y, z);
-        Fft.convolve(x, z, a);
-        //Fft.inverseTransform(x, z);
+        mixInInt = new ArrayList<>();
+        for(int i = 0 ; i < largest; i++){
+            mixInInt.add((int)z[i]);
+        }
+        mixInBytes = this.intWavToByte(mixInInt);
+        this.playMix();
+        
+        Fft.convolve(x, z, c);
 
         for(int i = 0; i < largest; i++){
             if(i < reverbInInt.size()){
-                reverbInInt.set(i, (int)(a[i]/m));
+                reverbInInt.set(i, (int)(c[i]/m));
             }else{
-                reverbInInt.add((int)(a[i]/m));
+                reverbInInt.add((int)(c[i]/m));
             }
         }
         

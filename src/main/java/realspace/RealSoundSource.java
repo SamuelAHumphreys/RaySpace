@@ -50,6 +50,13 @@ public class RealSoundSource {
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
+                if(fxtr.equals(fixture)){
+                    return -1;
+                }else if(realSpace.getHearer() != null && realSpace.getHearer().getFixture().equals(fxtr)){
+                    rayHit.setStereoChannel(1);
+                }else if(realSpace.getStereoHearer() != null && realSpace.getStereoHearer().getFixture().equals(fxtr)){
+                    rayHit.setStereoChannel(2);
+                }
                 rayHit.setXy(new Vec2(point));
                 rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
@@ -102,6 +109,14 @@ public class RealSoundSource {
         RayCastCallback callback = new RayCastCallback() {
             @Override
             public float reportFixture(Fixture fxtr, Vec2 point, Vec2 norm, float f) {
+
+                if(fxtr.equals(fixture)){
+                    return -1;
+                }else if(realSpace.getHearer() != null && realSpace.getHearer().getFixture().equals(fxtr)){
+                    rayHit.setStereoChannel(1);
+                }else if(realSpace.getStereoHearer() != null && realSpace.getStereoHearer().getFixture().equals(fxtr)){
+                    rayHit.setStereoChannel(2);
+                }
                 rayHit.setXy(new Vec2(point));
                 rayHit.setNorm(new Vec2(norm));
                 rayHit.setFixture(fxtr);
