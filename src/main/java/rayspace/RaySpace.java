@@ -329,7 +329,9 @@ public class RaySpace extends Application {
                             public void run() {
                                 try {
                                     wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
-                                    wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
+                                    if(realSpace.getStereoHearer() != null){
+                                        wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
+                                    }
                                 } catch (LineUnavailableException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 }
@@ -379,7 +381,10 @@ public class RaySpace extends Application {
                             public void run() {
                                 try {
                                     wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
-                                    wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
+                                    if(realSpace.getStereoHearer() != null){
+                                        wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
+                                    }
+                                   
                                 } catch (UnsupportedAudioFileException ex) {
                                     Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                 } catch (IOException ex) {
@@ -442,8 +447,12 @@ public class RaySpace extends Application {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                     try {
-                                        //wp.save(file);
-                                        wp.stereoSave(file);
+                                        if(realSpace.getStereoHearer() != null){
+                                            wp.stereoSave(file);
+                                        }else{
+                                            wp.save(file);
+
+                                        }
                                     } catch (IOException ex) {
                                         Logger.getLogger(RaySpace.class.getName()).log(Level.SEVERE, null, ex);
                                     } catch (LineUnavailableException ex) {
