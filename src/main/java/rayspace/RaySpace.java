@@ -278,7 +278,7 @@ public class RaySpace extends Application {
             if(pb.getProgress() == 0 || pb.getProgress() == 100){
                 realSpace.getPaths().clear();
                 pa.reset();
-                realSpace.reflect(20/((rayDensity.getValue()+0.02)*80),angleSlider.getValue(),centerSlider.getValue());
+                realSpace.reflect(20/((rayDensity.getValue()+0.02)*200),angleSlider.getValue(),centerSlider.getValue());
             }
         }
         });
