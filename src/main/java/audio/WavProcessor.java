@@ -5,6 +5,7 @@
  */
 package audio;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -296,7 +297,10 @@ public class WavProcessor {
     }
 
     public void applyReverb(ArrayList<ArrayList<PathNode>> rayData, double mix, int delay,int channel) throws LineUnavailableException{
-        
+        System.out.println("Ray Data Size : " + rayData.size());
+        System.out.println("Room Size : " + roomSize);
+        System.out.println("Low Frequency Absorptivity : " + lowFreqAbsorptivity);
+        System.out.println("High Frequency Absorptivity : " + highFreqAbsorptivity);
         this.wavInInt = ByteProcessor.byteWavToInt(wavInBytes);
         ArrayList<RayData> rayDatas = new ArrayList<>();
         for(ArrayList<PathNode> path : rayData){
@@ -440,8 +444,9 @@ public class WavProcessor {
         ArrayList<Integer> impulseResponse = new ArrayList<>();
         ArrayList<Integer> whiteNoise = new ArrayList<>();
         ArrayList<Byte> byteWhiteNoise = new ArrayList<>();
-        File file = new File("src/main/java/resources/shortSineSweep.wav");
-        AudioInputStream is = AudioSystem.getAudioInputStream(file);
+        //File file = new File("src/main/resources/shortSineSweep.wav");
+        //AudioInputStream is = AudioSystem.getAudioInputStream(file);
+        AudioInputStream is = AudioSystem.getAudioInputStream(new BufferedInputStream(getClass().getResourceAsStream("/shortSineSweep.wav")));
         byte[] buffer = new byte[format.getFrameSize()];
         for(int i = 0; i < format.getFrameSize(); i++){
             byteWhiteNoise.add(buffer[i]);

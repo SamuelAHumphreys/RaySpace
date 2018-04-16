@@ -94,7 +94,7 @@ public class RealSoundSource {
             }
 
             if(path.size() < maxPathSize && !rayHit.getFixture().isSensor()){
-                reflectCast( Math.atan2(r2.y, r2.x),realSpace,path);
+                reflectCast( Math.atan2(r2.y, r2.x),realSpace,path,surfaceRoughness);
             }
         }else{
             rayHit.setXy(RealSpace.Point2DToVec2(targetRotated));
@@ -104,7 +104,7 @@ public class RealSoundSource {
         return path;
     }
     
-    public void reflectCast(double radiansAngle, RealSpace realSpace, ArrayList<PathNode> currentPath){
+    public void reflectCast(double radiansAngle, RealSpace realSpace, ArrayList<PathNode> currentPath, double surfaceRoughness){
         PathNode rayHit = new PathNode();
         RayCastCallback callback = new RayCastCallback() {
             @Override
@@ -134,8 +134,28 @@ public class RealSoundSource {
             top *=2;
             Vec2 r = v.sub(rayHit.getNorm().mul((float)top));
             currentPath.add(rayHit);
+            
+            Random ran = new Random();
+            double random1 = ran.nextGaussian()*surfaceRoughness;
+            double random2 = ran.nextGaussian()*surfaceRoughness;
+            
+            Vec2 r2 = r.clone();
+            r2.set(r.x+(float)random1, r.y+(float)random2);
+            int i = 0;
+            while(1.5708 < Math.abs(Math.atan2(rayHit.getNorm().y,rayHit.getNorm().x) - Math.atan2(r2.y,r2.x)) && i < 100){
+                i++;
+                random1 = ran.nextGaussian()*(surfaceRoughness*1.5708);
+                random2 = ran.nextGaussian()*(surfaceRoughness*1.5708);
+                r2.set(r.x+(float)random1, r.y+(float)random2);
+            }
+            if(i == 100){
+                random1 = 0;
+                random2 = 0;
+            }
+
+            
             if(currentPath.size() < maxPathSize && !rayHit.getFixture().isSensor()){
-                reflectCast( Math.atan2(r.y, r.x),realSpace,currentPath);
+                reflectCast( Math.atan2(r2.y, r2.x),realSpace,currentPath,surfaceRoughness);
             }
         }else{
             rayHit.setXy(RealSpace.Point2DToVec2(targetRotated));

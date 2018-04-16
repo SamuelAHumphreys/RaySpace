@@ -328,6 +328,7 @@ public class RaySpace extends Application {
                         Thread t = new Thread(){
                             public void run() {
                                 try {
+                                    System.out.println("Surface Roughness : " + roughnessSlider.getValue());
                                     wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
                                     if(realSpace.getStereoHearer() != null){
                                         wp.applyReverb(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
@@ -380,6 +381,7 @@ public class RaySpace extends Application {
                         Thread t = new Thread(){
                             public void run() {
                                 try {
+                                    System.out.println("Surface Roughness : " + roughnessSlider.getValue());
                                     wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),1);
                                     if(realSpace.getStereoHearer() != null){
                                         wp.convolve(realSpace.getPaths(),mixSlider.getValue(),(int)delaySlider.getValue(),2);
